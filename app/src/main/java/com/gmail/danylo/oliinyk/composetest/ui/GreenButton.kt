@@ -34,8 +34,8 @@ import com.gmail.danylo.oliinyk.composetest.common.Colors.DarkerGreen
 import com.gmail.danylo.oliinyk.composetest.common.Colors.LighterGreen
 import com.gmail.danylo.oliinyk.composetest.common.Colors.TransparentBlack35
 import com.gmail.danylo.oliinyk.composetest.common.Fonts.PT_SANS
-import com.gmail.danylo.oliinyk.composetest.util.animateAlpha
-import com.gmail.danylo.oliinyk.composetest.util.animateDp
+import com.gmail.danylo.oliinyk.composetest.util.animateAlphaOnPressed
+import com.gmail.danylo.oliinyk.composetest.util.animateDpOnPressed
 import com.gmail.danylo.oliinyk.composetest.util.createWhiteBrush
 import com.gmail.danylo.oliinyk.composetest.util.shadowCustom
 
@@ -53,26 +53,26 @@ fun GreenButton() {
 
         with(interactionSource.collectIsPressedAsState()) {
             val alphas = buildList {
-                add(animateAlpha(from = .07f, to = .18f, label = "Alpha1Animation").value)
+                add(animateAlphaOnPressed(pressed = .07f, released = .18f, label = "Alpha1Animation").value)
                 add(0f)
-                add(animateAlpha(from = .15f, to = .35f, label = "Alpha3Animation").value)
+                add(animateAlphaOnPressed(pressed = .15f, released = .35f, label = "Alpha3Animation").value)
             }
             val whiteOverlayBrush = createWhiteBrush(*alphas.toFloatArray())
             val innerBorderWhiteOverlayBrush = createWhiteBrush(.34f, 1f, .7f)
 
-            val buttonHeight by animateDp(
-                from = BUTTON_HEIGHT_DP - 15.dp,
-                to = BUTTON_HEIGHT_DP,
+            val buttonHeight by animateDpOnPressed(
+                pressed = BUTTON_HEIGHT_DP - 15.dp,
+                released = BUTTON_HEIGHT_DP,
                 label = "buttonHeightAnimation"
             )
-            val bottomPadding by animateDp(
-                from = BUTTON_BOTTOM_PADDING_DP - 15.dp,
-                to = BUTTON_BOTTOM_PADDING_DP,
+            val bottomPadding by animateDpOnPressed(
+                pressed = BUTTON_BOTTOM_PADDING_DP - 15.dp,
+                released = BUTTON_BOTTOM_PADDING_DP,
                 label = "buttonPaddingAnimation"
             )
-            val offsetY by animateDp(
-                from = 7.5.dp,
-                to = 0.dp,
+            val offsetY by animateDpOnPressed(
+                pressed = 7.5.dp,
+                released = 0.dp,
                 label = "offsetYAnimation"
             )
             val shadowColor by animateColorAsState(

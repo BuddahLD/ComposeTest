@@ -4,7 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BlurMaskFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.renderscript.Allocation
+import android.renderscript.Element
 import android.renderscript.RenderScript
 import android.renderscript.ScriptIntrinsicBlur
 import androidx.annotation.DrawableRes
@@ -17,9 +20,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
@@ -30,27 +38,43 @@ import androidx.compose.ui.unit.dp
 fun createBrush(color: Color, vararg alphas: Float): Brush {
     require(alphas.size >= 2) { "Should be at least two alphas" }
 
-    val whiteOverlay = alphas.map {
+    val colorOverlay = alphas.map {
         color.copy(alpha = it)
     }
-    return Brush.verticalGradient(whiteOverlay)
+    return Brush.verticalGradient(colorOverlay)
 }
 
 fun createWhiteBrush(vararg alphas: Float): Brush = createBrush(Color(0xFFFFFFFF), *alphas)
 
 @Composable
-fun State<Boolean>.animateAlpha(from: Float, to: Float, label: String): State<Float> {
+fun State<Boolean>.animateAlphaOnPressed(pressed: Float, released: Float, label: String): State<Float> =
+    animateAlphaOnPressed(
+        pressed = pressed,
+        released = released,
+        pressedDuration = 75,
+        releasedDuration = 150,
+        label = label
+    )
+
+@Composable
+fun State<Boolean>.animateAlphaOnPressed(
+    pressed: Float,
+    released: Float,
+    pressedDuration: Int,
+    releasedDuration: Int,
+    label: String
+): State<Float> {
     return animateFloatAsState(
-        targetValue = if (value) from else to,
-        animationSpec = tween(durationMillis = if (value) 75 else 150),
+        targetValue = if (value) pressed else released,
+        animationSpec = tween(durationMillis = if (value) pressedDuration else releasedDuration),
         label = label
     )
 }
 
 @Composable
-fun State<Boolean>.animateDp(from: Dp, to: Dp, label: String): State<Dp> {
+fun State<Boolean>.animateDpOnPressed(pressed: Dp, released: Dp, label: String): State<Dp> {
     return animateDpAsState(
-        targetValue = if (value) from else to,
+        targetValue = if (value) pressed else released,
         animationSpec = tween(durationMillis = if (value) 75 else 150),
         label = label
     )
@@ -105,6 +129,46 @@ fun Modifier.shadowCustom(
     }
 }
 
+/**
+ * From https://gist.github.com/L10n42/475e25365cfde757f40a66cadbec3eaa
+ */
+fun Modifier.innerShadow(
+    shape: Shape,
+    color: Color = Color.Black,
+    blur: Dp = 4.dp,
+    offsetY: Dp = 2.dp,
+    offsetX: Dp = 2.dp,
+    spread: Dp = 0.dp
+) = this.drawWithContent {
+
+    drawContent()
+
+    drawIntoCanvas { canvas ->
+
+        val shadowSize = Size(size.width + spread.toPx(), size.height + spread.toPx())
+        val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
+
+        val paint = Paint()
+        paint.color = color
+
+        canvas.saveLayer(size.toRect(), paint)
+        canvas.drawOutline(shadowOutline, paint)
+
+        paint.asFrameworkPaint().apply {
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
+            if (blur.toPx() > 0) {
+                maskFilter = BlurMaskFilter(blur.toPx(), BlurMaskFilter.Blur.NORMAL)
+            }
+        }
+
+        paint.color = Color.Black
+
+        canvas.translate(offsetX.toPx(), offsetY.toPx())
+        canvas.drawOutline(shadowOutline, paint)
+        canvas.restore()
+    }
+}
+
 private fun Dp.px(density: Density): Float =
     with(density) { toPx() }
 
@@ -128,4 +192,23 @@ fun blurBitmap(context: Context, bitmap: Bitmap): Bitmap {
     rs.destroy()
 
     return bitmap
+}
+
+fun blurRenderScript(context: Context?, inputBitmap: Bitmap, radius: Int): Bitmap {
+    val outputBitmap = inputBitmap.copy(inputBitmap.config, true)
+    val renderScript = RenderScript.create(context)
+    val blurInput = Allocation.createFromBitmap(renderScript,
+        inputBitmap,
+        Allocation.MipmapControl.MIPMAP_NONE,
+        Allocation.USAGE_SCRIPT)
+    val blurOutput = Allocation.createFromBitmap(renderScript, outputBitmap)
+    val blur = ScriptIntrinsicBlur.create(renderScript,
+        Element.U8_4(renderScript))
+    blur.setInput(blurInput)
+    blur.setRadius(radius.toFloat())
+    blur.forEach(blurOutput)
+    blurOutput.copyTo(outputBitmap)
+    renderScript.destroy()
+
+    return outputBitmap
 }
