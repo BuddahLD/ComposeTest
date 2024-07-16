@@ -1,6 +1,13 @@
-package com.gmail.danylo.oliinyk.composetest
+package com.gmail.danylo.oliinyk.composetest.util
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.BlurMaskFilter
+import android.renderscript.Allocation
+import android.renderscript.RenderScript
+import android.renderscript.ScriptIntrinsicBlur
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -20,14 +27,16 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-fun createBrush(vararg alphas: Float): Brush {
+fun createBrush(color: Color, vararg alphas: Float): Brush {
     require(alphas.size >= 2) { "Should be at least two alphas" }
 
     val whiteOverlay = alphas.map {
-        Color(0xFFFFFFFF).copy(alpha = it)
+        color.copy(alpha = it)
     }
     return Brush.verticalGradient(whiteOverlay)
 }
+
+fun createWhiteBrush(vararg alphas: Float): Brush = createBrush(Color(0xFFFFFFFF), *alphas)
 
 @Composable
 fun State<Boolean>.animateAlpha(from: Float, to: Float, label: String): State<Float> {
@@ -98,3 +107,25 @@ fun Modifier.shadowCustom(
 
 private fun Dp.px(density: Density): Float =
     with(density) { toPx() }
+
+fun blurredBitmapFromDrawable(context: Context, @DrawableRes resId: Int): Bitmap {
+    val options = BitmapFactory.Options()
+    options.inSampleSize = 14
+    val bitmap = BitmapFactory.decodeResource(context.resources, resId, options)
+
+    return blurBitmap(context, bitmap)
+}
+
+fun blurBitmap(context: Context, bitmap: Bitmap): Bitmap {
+    val rs = RenderScript.create(context)
+    val bitmapAlloc = Allocation.createFromBitmap(rs, bitmap)
+    ScriptIntrinsicBlur.create(rs, bitmapAlloc.element).apply {
+        setRadius(25f)
+        setInput(bitmapAlloc)
+        forEach(bitmapAlloc)
+    }
+    bitmapAlloc.copyTo(bitmap)
+    rs.destroy()
+
+    return bitmap
+}

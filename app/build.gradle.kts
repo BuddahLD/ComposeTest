@@ -18,6 +18,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        renderscriptTargetApi = 19
+        renderscriptSupportModeEnabled = true
     }
 
     buildTypes {
@@ -48,7 +50,7 @@ android {
 
 dependencies {
 
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.cloudy)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
