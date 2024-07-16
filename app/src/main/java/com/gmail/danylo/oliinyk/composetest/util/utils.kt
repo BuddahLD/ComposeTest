@@ -2,7 +2,6 @@ package com.gmail.danylo.oliinyk.composetest.util
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.BlurMaskFilter
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
@@ -10,7 +9,6 @@ import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
 import android.renderscript.ScriptIntrinsicBlur
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -171,28 +169,6 @@ fun Modifier.innerShadow(
 
 private fun Dp.px(density: Density): Float =
     with(density) { toPx() }
-
-fun blurredBitmapFromDrawable(context: Context, @DrawableRes resId: Int): Bitmap {
-    val options = BitmapFactory.Options()
-    options.inSampleSize = 14
-    val bitmap = BitmapFactory.decodeResource(context.resources, resId, options)
-
-    return blurBitmap(context, bitmap)
-}
-
-fun blurBitmap(context: Context, bitmap: Bitmap): Bitmap {
-    val rs = RenderScript.create(context)
-    val bitmapAlloc = Allocation.createFromBitmap(rs, bitmap)
-    ScriptIntrinsicBlur.create(rs, bitmapAlloc.element).apply {
-        setRadius(25f)
-        setInput(bitmapAlloc)
-        forEach(bitmapAlloc)
-    }
-    bitmapAlloc.copyTo(bitmap)
-    rs.destroy()
-
-    return bitmap
-}
 
 fun blurRenderScript(context: Context?, inputBitmap: Bitmap, radius: Int): Bitmap {
     val outputBitmap = inputBitmap.copy(inputBitmap.config, true)

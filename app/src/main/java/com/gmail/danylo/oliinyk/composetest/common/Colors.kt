@@ -13,4 +13,5 @@ object Colors {
     val TransparentBlue = Color(0xFFB2CCFF)
     val MidBlue = Color(0xFF4E5E7E)
     val DarkBlue = Color(0xFF213152)
+    val LightBlue = Color(0xFF75A5E0)
 }
