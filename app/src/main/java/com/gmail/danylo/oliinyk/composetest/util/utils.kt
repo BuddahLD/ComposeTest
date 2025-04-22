@@ -14,7 +14,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
@@ -26,12 +29,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 fun createBrush(color: Color, vararg alphas: Float): Brush {
     require(alphas.size >= 2) { "Should be at least two alphas" }
@@ -173,13 +182,17 @@ private fun Dp.px(density: Density): Float =
 fun blurRenderScript(context: Context?, inputBitmap: Bitmap, radius: Int): Bitmap {
     val outputBitmap = inputBitmap.copy(inputBitmap.config, true)
     val renderScript = RenderScript.create(context)
-    val blurInput = Allocation.createFromBitmap(renderScript,
+    val blurInput = Allocation.createFromBitmap(
+        renderScript,
         inputBitmap,
         Allocation.MipmapControl.MIPMAP_NONE,
-        Allocation.USAGE_SCRIPT)
+        Allocation.USAGE_SCRIPT
+    )
     val blurOutput = Allocation.createFromBitmap(renderScript, outputBitmap)
-    val blur = ScriptIntrinsicBlur.create(renderScript,
-        Element.U8_4(renderScript))
+    val blur = ScriptIntrinsicBlur.create(
+        renderScript,
+        Element.U8_4(renderScript)
+    )
     blur.setInput(blurInput)
     blur.setRadius(radius.toFloat())
     blur.forEach(blurOutput)
@@ -187,4 +200,53 @@ fun blurRenderScript(context: Context?, inputBitmap: Bitmap, radius: Int): Bitma
     renderScript.destroy()
 
     return outputBitmap
+}
+
+fun Int.toDp(density: Float): Dp = (this / density).dp
+
+fun Float.toDp(density: Float): Dp = (this / density).dp
+
+fun Modifier.drawSizeText(offsetX: Dp = 0.dp, offsetY: Dp = 0.dp, textColor: Color = Color.Black): Modifier = composed {
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
+
+    this
+        .onSizeChanged {
+            size = it
+        }
+        .drawBehind {
+            drawSizeText(size, density, offsetX, offsetY, textColor)
+        }
+}
+
+private fun DrawScope.drawSizeText(
+    size: IntSize,
+    density: Density,
+    offsetX: Dp,
+    offsetY: Dp,
+    textColor: Color
+) {
+    with(density) {
+        val widthDp = size.width.toDp().value.roundToInt()
+        val heightDp = size.height.toDp().value.roundToInt()
+        val sizeText = "$widthDp x $heightDp"
+
+        drawContext.canvas.nativeCanvas.apply {
+            val paint = android.graphics.Paint().apply {
+                color = textColor.toArgb()
+                textSize = 16.sp.toPx()
+                textAlign = android.graphics.Paint.Align.CENTER
+                isFakeBoldText = true
+            }
+            val textHeight = paint.descent() - paint.ascent()
+            val textOffset = textHeight / 2 - paint.descent()
+
+            drawText(
+                sizeText,
+                (size.width / 2f) + offsetX.toPx(),
+                (size.height / 2f + textOffset) + offsetY.toPx(),
+                paint
+            )
+        }
+    }
 }
