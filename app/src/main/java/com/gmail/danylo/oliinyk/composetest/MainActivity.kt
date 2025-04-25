@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.gmail.danylo.oliinyk.composetest.easymigration.MiniVideoChatTheme
 import com.gmail.danylo.oliinyk.composetest.easymigration.VersionChecker
-import com.gmail.danylo.oliinyk.composetest.ui.NestedScrollTest
+import com.gmail.danylo.oliinyk.composetest.ui.ClearMeAfterUsage
 
 class MainActivity : ComponentActivity() {
 
@@ -31,8 +31,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(color = Color.White)
                 ) {
-//                    ClearMeAfterUsage()
-                    NestedScrollTest()
+                    ClearMeAfterUsage()
+//                    NestedScrollTest()
 //                    NestedScrollTestBoxes()
 //                    ScrollTestBox()
                 }

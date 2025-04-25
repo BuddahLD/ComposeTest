@@ -3,7 +3,7 @@ package com.gmail.danylo.oliinyk.composetest.ui
 import android.content.res.Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,10 +38,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -116,34 +118,34 @@ fun SimpleBottomSheet() {
     val nestedScrollConnection = remember(isExpanded) {
         object : NestedScrollConnection {
 
-//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-////                return if (isLocked) {
-////                    println("sheet_scroll onPreScroll locked")
-////                    super.onPreScroll(available, source)
-////                } else {
-//                    println("sheet_scroll onPreScroll UNlocked")
-//                    return if (isListAtTop) {
-//                        if (isExpanded) {
-//                            println("sheet_scroll onPreScroll top expanded")
-//                            if (available.y > 0) {
-////                                offsetY = (offsetY + available.y)
-//                                offsetY = (offsetY + available.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
-//                                Offset(x = 0f, available.y)
-//                            } else {
-//                                Offset.Zero
-//                            }
-//                        } else {
-//                            println("sheet_scroll onPreScroll top NOT expanded")
-////                            offsetY = (offsetY + available.y)
-//                            offsetY = (offsetY + available.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
-//                            Offset(x = 0f, available.y)
-//                        }
-//                    } else {
-//                        println("sheet_scroll onPreScroll NOT top")
-//                        Offset.Zero
-//                    }
-////                }
-//            }
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                return if (isLocked) {
+                    println("sheet_scroll onPreScroll locked")
+                    super.onPreScroll(available, source)
+                } else {
+                    println("sheet_scroll onPreScroll UNlocked")
+                    if (isListAtTop) {
+                        if (isExpanded) {
+                            println("sheet_scroll onPreScroll top expanded")
+                            if (available.y > 0) {
+//                                offsetY = (offsetY + available.y)
+                                offsetY = (offsetY + available.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
+                                Offset(x = 0f, available.y)
+                            } else {
+                                Offset.Zero
+                            }
+                        } else {
+                            println("sheet_scroll onPreScroll top NOT expanded")
+//                            offsetY = (offsetY + available.y)
+                            offsetY = (offsetY + available.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
+                            Offset(x = 0f, available.y)
+                        }
+                    } else {
+                        println("sheet_scroll onPreScroll NOT top")
+                        Offset.Zero
+                    }
+                }
+            }
         }
     }
 
@@ -157,13 +159,13 @@ fun SimpleBottomSheet() {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .background(MaterialTheme.colorScheme.surface)
-//                .pointerInput(Unit) {
-//                    detectDragGestures { _, dragAmount ->
-//                        if (!(isExpanded && dragAmount.y < 0)) {
-//                            offsetY = (offsetY + dragAmount.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
-//                        }
-//                    }
-//                }
+                .pointerInput(Unit) {
+                    detectDragGestures { _, dragAmount ->
+                        if (!(isExpanded && dragAmount.y < 0)) {
+                            offsetY = (offsetY + dragAmount.y).coerceIn(minimumValue = expandedThreshold, maximumValue = minHeight)
+                        }
+                    }
+                }
         ) {
             Column(
                 modifier = Modifier
@@ -211,41 +213,24 @@ fun SimpleBottomSheet() {
 
 @Composable
 fun VerticalPicker(onScrollLocked: (Boolean) -> Unit) {
-    val listStateInner = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     val nestedScrollConnectionInner = remember {
         object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                scope.launch { listStateInner.scrollBy(available.y) }
-                return Offset(x = 0f, available.y / 2)
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                onScrollLocked(true)
+                return available
             }
 
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-//                onScrollLocked(true)
-                return Offset(x = 0f, available.y)
-            }
-//
-//            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-//                onScrollLocked(false)
-//                return super.onPostFling(consumed, available)
-//            }
-        }
-    }
-    val disabledNestedScrollConnection = remember {
-        object : NestedScrollConnection {
-//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-//                return available
-//            }
-
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                return Offset(x = 0f, available.y / 10)
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                onScrollLocked(false)
+                return super.onPostFling(consumed, available)
             }
         }
     }
+    val listStateInner = rememberLazyListState()
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .nestedScroll(disabledNestedScrollConnection)
+            .nestedScroll(nestedScrollConnectionInner)
             .height(200.dp),
         state = listStateInner,
         contentPadding = PaddingValues(bottom = 32.dp)
