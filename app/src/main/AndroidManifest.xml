@@ -18,7 +18,7 @@
             android:configChanges="smallestScreenSize|screenLayout|screenSize|orientation|locale|layoutDirection|keyboardHidden"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ComposeTest">
+            android:theme="@style/AppThemeNoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
