@@ -58,8 +58,4 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.lifecycle.viewmodel)
     implementation(libs.compose.activity)
-
-    implementation("androidx.core:core-splashscreen:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
-    implementation("com.github.oOJohn6Oo:JWheelPicker:1.3.4")
 }
