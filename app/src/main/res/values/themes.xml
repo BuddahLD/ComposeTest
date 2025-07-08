@@ -1,4 +1,9 @@
 <resources>
 
-    <style name="Theme.ComposeTest" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.ComposeTest" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+<!--        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">-->
+<!--            @drawable/animation_splash_screen_minichat-->
+<!--        </item>-->
+    </style>
 </resources>

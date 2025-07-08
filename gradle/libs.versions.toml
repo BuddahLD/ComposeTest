@@ -1,10 +1,12 @@
 [versions]
 agp = "8.7.0"
+androidx-core-splashscreen = "1.0.1"
 emoji2 = "1.5.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 lifecycleRuntimeKtx = "2.8.2"
-compose-bom = "2024.12.01"
+compose-bom = "2025.06.01"
+compose-bom-beta = "2025.06.02"
 lifecycle-viewmodel-compose = "2.8.6"
 
 [libraries]
@@ -12,9 +14,11 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-emoji2 = { module = "androidx.emoji2:emoji2", version.ref = "emoji2" }
 androidx-emoji2-bundled = { module = "androidx.emoji2:emoji2-bundled", version.ref = "emoji2" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
 
 # Compose
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-bom-beta = { group = "androidx.compose", name = "compose-bom-beta", version.ref = "compose-bom-beta" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }

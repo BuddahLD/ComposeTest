@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.gmail.danylo.oliinyk.composetest"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.gmail.danylo.oliinyk.composetest"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -53,9 +53,14 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    implementation(platform(libs.compose.bom))
+    implementation(platform(libs.compose.bom.beta))
     implementation(libs.bundles.androidx.compose)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.lifecycle.viewmodel)
     implementation(libs.compose.activity)
+
+    implementation(libs.androidx.core.splashscreen)
+
+    implementation("androidx.compose.animation:animation:1.8.3")
+    implementation("androidx.compose.animation:animation-graphics:1.8.3")
 }
