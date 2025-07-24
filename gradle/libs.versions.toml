@@ -7,6 +7,7 @@ coreKtx = "1.13.1"
 lifecycleRuntimeKtx = "2.8.2"
 compose-bom = "2025.07.00"
 compose-bom-beta = "2025.06.02"
+timber = "5.0.1"
 lifecycle-viewmodel-compose = "2.8.6"
 
 [libraries]
@@ -15,6 +16,7 @@ androidx-emoji2 = { module = "androidx.emoji2:emoji2", version.ref = "emoji2" }
 androidx-emoji2-bundled = { module = "androidx.emoji2:emoji2-bundled", version.ref = "emoji2" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 # Compose
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
