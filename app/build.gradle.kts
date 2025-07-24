@@ -60,7 +60,4 @@ dependencies {
     implementation(libs.compose.activity)
 
     implementation(libs.androidx.core.splashscreen)
-
-    implementation("androidx.compose.animation:animation:1.8.3")
-    implementation("androidx.compose.animation:animation-graphics:1.8.3")
 }
