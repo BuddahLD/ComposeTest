@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -53,12 +54,15 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
+    // Compose
     implementation(platform(libs.compose.bom.beta))
     implementation(libs.bundles.androidx.compose)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.lifecycle.viewmodel)
     implementation(libs.compose.activity)
 
+    // Other
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.timber)
+    implementation(libs.webrtc.sdk)
 }
