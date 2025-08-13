@@ -6,7 +6,7 @@ kotlin = "2.2.0"
 coreKtx = "1.16.0"
 lifecycleRuntimeKtx = "2.9.2"
 compose-bom = "2025.07.00"
-compose-bom-beta = "2025.07.00"
+compose-bom-beta = "2025.07.01"
 timber = "5.0.1"
 lifecycle-viewmodel-compose = "2.9.2"
 webrtc-sdk = "137.7151.01"
@@ -44,4 +44,3 @@ androidx-compose = [
     "compose-ui",
     "compose-ui-tooling-preview",
 ]
-
