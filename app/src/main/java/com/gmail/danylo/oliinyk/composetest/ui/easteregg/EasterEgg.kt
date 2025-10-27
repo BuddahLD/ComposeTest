@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +33,7 @@ import timber.log.Timber
 fun EasterEggScreen() {
     val registry = rememberGravityRegistry()
     var gravityOn by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(gravityOn) {
         Timber.tag("EasterEgg").d("gravityOn changed to $gravityOn")
     }
@@ -77,9 +74,9 @@ fun EasterEggScreen() {
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             Spacer(Modifier.height(12.dp))
-            
+
             // Second row
             Row(
                 Modifier.fillMaxWidth(),
@@ -107,9 +104,9 @@ fun EasterEggScreen() {
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             Spacer(Modifier.height(16.dp))
-            
+
             // Third row
             Row(
                 Modifier.fillMaxWidth(),
@@ -137,34 +134,40 @@ fun EasterEggScreen() {
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             Spacer(Modifier.height(24.dp))
 
             Button(onClick = {
-                Timber.tag("EasterEgg").d("Button tapped, activating gravity mode, registry items=${registry.items.size}")
+                Timber.tag("EasterEgg")
+                    .d("Button tapped, activating gravity mode, registry items=${registry.items.size}")
                 gravityOn = true
             }) {
                 Text("Enable gravity")
             }
 
-            if (gravityOn) {
-                Timber.tag("EasterEgg").d("Gravity mode is ON")
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = { 
-                    Timber.tag("EasterEgg").d("Returning to normal mode")
-                    gravityOn = false 
-                }) {
-                    Text("Return to normal")
-                }
-            }
-            }
         }
-
+        
+        // Gravity overlay - shows physics when enabled
         GravityOverlay(
             visible = gravityOn,
             registry = registry,
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.fillMaxSize()
         )
+        
+        // Disable gravity button - shown when gravity is active
+        if (gravityOn) {
+            Button(
+                onClick = {
+                    Timber.tag("EasterEgg").d("Returning to normal mode")
+                    gravityOn = false
+                },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(16.dp)
+            ) {
+                Text("Disable gravity")
+            }
+        }
     }
 }
 
@@ -178,7 +181,7 @@ private fun ColoredBox(
 ) {
     // Use a fixed size circle instead of flexible box
     val size = 120.dp
-    
+
     Box(
         modifier = modifier
             .size(size)
@@ -191,7 +194,7 @@ private fun ColoredBox(
                 radius = size.toPx() / 2f
             )
         }
-        
+
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium.copy(

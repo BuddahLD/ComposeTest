@@ -5,8 +5,7 @@ emoji2 = "1.5.0"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 lifecycleRuntimeKtx = "2.9.2"
-compose-bom = "2025.07.00"
-compose-bom-beta = "2025.07.01"
+compose-bom = "2025.10.01"
 timber = "5.0.1"
 lifecycle-viewmodel-compose = "2.9.2"
 webrtc-sdk = "137.7151.01"
@@ -22,7 +21,6 @@ webrtc-sdk = { module = "io.github.webrtc-sdk:android-prefixed", version.ref = "
 
 # Compose
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
-compose-bom-beta = { group = "androidx.compose", name = "compose-bom-beta", version.ref = "compose-bom-beta" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }

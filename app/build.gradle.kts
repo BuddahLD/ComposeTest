@@ -55,7 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Compose
-    implementation(platform(libs.compose.bom.beta))
+    implementation(platform(libs.compose.bom))
     implementation(libs.bundles.androidx.compose)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.lifecycle.viewmodel)
