@@ -1,4 +1,4 @@
-package com.gmail.danylo.oliinyk.composetest.ui
+package com.gmail.danylo.oliinyk.composetest.ui.easteregg
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,10 +33,9 @@ import timber.log.Timber
 fun EasterEggScreen() {
     val registry = rememberGravityRegistry()
     var gravityOn by remember { mutableStateOf(false) }
-    var taps by remember { mutableStateOf(0) }
     
     LaunchedEffect(gravityOn) {
-        Timber.d("EasterEgg: gravityOn changed to $gravityOn")
+        Timber.tag("EasterEgg").d("gravityOn changed to $gravityOn")
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -137,22 +136,17 @@ fun EasterEggScreen() {
             Spacer(Modifier.height(24.dp))
 
             Button(onClick = {
-                taps++
-                Timber.d("EasterEgg: Button tapped, current taps=$taps")
-                if (taps >= 7) {
-                    Timber.d("EasterEgg: Activating gravity mode, registry items=${registry.items.size}")
-                    gravityOn = true
-                    taps = 0
-                }
+                Timber.tag("EasterEgg").d("Button tapped, activating gravity mode, registry items=${registry.items.size}")
+                gravityOn = true
             }) {
-                Text("Tap me (${if (taps == 0) "" else "${7 - taps} more"})")
+                Text("Enable gravity")
             }
 
             if (gravityOn) {
-                Timber.d("EasterEgg: Gravity mode is ON")
+                Timber.tag("EasterEgg").d("Gravity mode is ON")
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { 
-                    Timber.d("EasterEgg: Returning to normal mode")
+                    Timber.tag("EasterEgg").d("Returning to normal mode")
                     gravityOn = false 
                 }) {
                     Text("Return to normal")
