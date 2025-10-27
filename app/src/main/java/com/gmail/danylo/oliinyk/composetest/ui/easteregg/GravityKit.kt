@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.toSize
@@ -57,6 +58,7 @@ fun GravityOverlay(
     visible: Boolean,
     registry: GravityRegistry,
     modifier: Modifier = Modifier.fillMaxSize(),
+    useDeviceGravity: Boolean = true,  // Use phone's accelerometer for gravity direction
     gravity: Float = 2800f,      // px/s^2 (tweak per device density)
     restitution: Float = 0.15f,  // 0..1, lower => stickier pile
     friction: Float = 0.985f,    // floor friction
@@ -66,6 +68,9 @@ fun GravityOverlay(
     
     Timber.tag("EasterEgg").d("GravityOverlay visible=$visible, registry size=${registry.items.size}")
 
+    // Get gravity vector from device sensors
+    val gravityVec = rememberGravitySensor(enableDeviceGravity = useDeviceGravity)
+    
     // Convert probed rects to physics bodies once per session
     val initialBodies = remember(registry.items.values.toList()) {
         val bodyList = registry.items.values.map { it.toBody() }.toMutableList()
@@ -95,9 +100,14 @@ fun GravityOverlay(
                     // Increment tick to trigger recomposition
                     tick = (tick + 1) % 1000
 
-                    // 1) Integrate
+                    // Apply gravity vector from sensors
+                    val gx = gravityVec.x * gravity
+                    val gy = gravityVec.y * gravity
+
+                    // 1) Integrate with directional gravity
                     bodies.forEach { b ->
-                        b.vy += gravity * dt
+                        b.vx += gx * dt
+                        b.vy += gy * dt
                         b.x += b.vx * dt
                         b.y += b.vy * dt
 
@@ -159,10 +169,51 @@ fun GravityOverlay(
         // Draw proxies - use tick to trigger recomposition
         key(tick) {
             Canvas(Modifier.fillMaxSize()) {
-                // Drawing happens every frame, so we skip per-frame logging here
+                // Draw bodies
                 bodies.forEach { b ->
                     drawCircle(color = b.color.copy(alpha = 0.9f), radius = b.r, center = Offset(b.x, b.y))
                 }
+                
+                // Draw gravity vector indicator (center of screen, pointing to gravity direction)
+                val indicatorLength = 200f
+                val baseX = W / 2f
+                val baseY = H / 2f
+                val arrowEndX = baseX + gravityVec.x * indicatorLength
+                val arrowEndY = baseY + gravityVec.y * indicatorLength
+                
+                // Draw main arrow line
+                drawLine(
+                    color = Color.Black,
+                    start = Offset(baseX, baseY),
+                    end = Offset(arrowEndX, arrowEndY),
+                    strokeWidth = 6f
+                )
+                
+                // Draw arrow head
+                val arrowSize = 30f
+                val dx = arrowEndX - baseX
+                val dy = arrowEndY - baseY
+                val length = kotlin.math.sqrt(dx * dx + dy * dy)
+                if (length > 0) {
+                    val perpX = -dy / length * arrowSize
+                    val perpY = dx / length * arrowSize
+                    
+                    // Triangle arrow head as a path
+                    val arrowPath = Path().apply {
+                        moveTo(arrowEndX, arrowEndY)
+                        lineTo(arrowEndX - dx / length * arrowSize + perpX, arrowEndY - dy / length * arrowSize + perpY)
+                        lineTo(arrowEndX - dx / length * arrowSize - perpX, arrowEndY - dy / length * arrowSize - perpY)
+                        close()
+                    }
+                    
+                    drawPath(
+                        path = arrowPath,
+                        color = Color.Black
+                    )
+                }
+                
+                // Draw center circle for reference
+                drawCircle(color = Color.Black.copy(alpha = 0.8f), radius = 10f, center = Offset(baseX, baseY))
             }
         }
     }

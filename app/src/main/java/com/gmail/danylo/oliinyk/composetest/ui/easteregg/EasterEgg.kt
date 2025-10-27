@@ -1,5 +1,6 @@
 package com.gmail.danylo.oliinyk.composetest.ui.easteregg
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import timber.log.Timber
@@ -39,11 +42,13 @@ fun EasterEggScreen() {
     }
 
     Box(Modifier.fillMaxSize()) {
+        // Grid - shown initially, becomes invisible when gravity is on
         Column(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
+                .alpha(if (gravityOn) 0f else 1f)  // Hide grid when gravity is on
         ) {
             // First row
             Row(
@@ -152,6 +157,7 @@ fun EasterEggScreen() {
                     Text("Return to normal")
                 }
             }
+            }
         }
 
         GravityOverlay(
@@ -170,25 +176,28 @@ private fun ColoredBox(
     id: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    // Use a fixed size circle instead of flexible box
+    val size = 120.dp
+    
+    Box(
         modifier = modifier
-            .gravityProbe(registry, GravityProbe(id = id, label = label, color = color))
-            .defaultMinSize(minWidth = 100.dp, minHeight = 120.dp),
-        color = color.copy(alpha = 0.15f),
-        shape = MaterialTheme.shapes.small
+            .size(size)
+            .gravityProbe(registry, GravityProbe(id = id, label = label, color = color)),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = color
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                color = color.copy(alpha = 0.9f),
+                radius = size.toPx() / 2f
             )
         }
+        
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = Color.White
+            )
+        )
     }
 }
 
