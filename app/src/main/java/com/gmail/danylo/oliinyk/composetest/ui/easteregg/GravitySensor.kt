@@ -1,6 +1,7 @@
 package com.gmail.danylo.oliinyk.composetest.ui.easteregg
 
 import android.content.Context
+import android.content.res.Configuration
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import timber.log.Timber
 
@@ -22,9 +24,13 @@ data class GravityVector(
 @Composable
 fun rememberGravitySensor(enableDeviceGravity: Boolean = true): GravityVector {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     var gravityVector by remember { mutableStateOf(GravityVector(0f, -1f)) }
     
-    DisposableEffect(enableDeviceGravity, context) {
+    // Get the actual device orientation
+    val orientation = configuration.orientation
+    
+    DisposableEffect(enableDeviceGravity, context, orientation) {
         // Use a holder object for smoothing state
         class SmoothState(var x: Float = 0f, var y: Float = 0f)
         val smooth = SmoothState()
@@ -41,34 +47,56 @@ fun rememberGravitySensor(enableDeviceGravity: Boolean = true): GravityVector {
                 object : SensorEventListener {
                     override fun onSensorChanged(event: SensorEvent?) {
                         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-                            // Accelerometer values in m/s² (device orientation)
-                            // values[0] = X axis (left-right tilt)
-                            // values[1] = Y axis (forward-back tilt, but we want screen up-down)
-                            // values[2] = Z axis (vertical when flat)
+                            // Accelerometer values in m/s²
+                            // For a 2D screen display, we need to extract gravity direction
+                            // values[0] = X (left-right acceleration)
+                            // values[1] = Y (forward-back acceleration) 
+                            // values[2] = Z (vertical acceleration)
                             
-                            // Extract tilt from accelerometer
-                            // When flat: X=0, Y=0, Z=9.8
-                            // When tilted right: X is non-zero
-                            // When tilted forward (top down): Y is non-zero
+                            val ax = event.values[0]
+                            val ay = event.values[1]
+                            val az = event.values[2]
                             
-                            val rawX = event.values[0] / 9.8f  // Left-right tilt
-                            val rawY = -event.values[1] / 9.8f  // Forward-back tilt (inverted for screen coordinates)
-                            
-                            // Exponential smoothing to reduce jitter
-                            smooth.x = rawX * alpha + smooth.x * (1 - alpha)
-                            smooth.y = rawY * alpha + smooth.y * (1 - alpha)
-                            
-                            // Update gravity vector
-                            val newX = smooth.x.coerceIn(-1f, 1f)
-                            val newY = smooth.y.coerceIn(-1f, 1f)
-                            
-                            // Only log occasionally to reduce spam
-                            if (System.currentTimeMillis() % 1000 < 50) {
-                                Timber.tag("EasterEgg").d("Gravity: raw=[%.2f,%.2f] smooth=[%.2f,%.2f]",
-                                    event.values[0], event.values[1], newX, newY)
+                            // Calculate magnitude for normalization
+                            val magnitude = kotlin.math.sqrt(ax * ax + ay * ay + az * az)
+                            if (magnitude > 0.1f) {
+                            // Normalize to get direction
+                            // For 2D screen where Y increases downward:
+                            // - X component: invert ax because of Android coordinate system
+                            // - Y component: use ay for forward-back tilt
+                            val rawX = -ax / magnitude  // Horizontal component (inverted!)
+                            val rawY = ay / magnitude   // Vertical component (forward-back tilt)
+                                
+                                // Exponential smoothing to reduce jitter
+                                smooth.x = rawX * alpha + smooth.x * (1 - alpha)
+                                smooth.y = rawY * alpha + smooth.y * (1 - alpha)
+                                
+                                // Update gravity vector based on screen orientation
+                                var newX = smooth.x.coerceIn(-1f, 1f)
+                                var newY = smooth.y.coerceIn(-1f, 1f)
+                                
+                                // Map device accelerometer to screen coordinates based on orientation
+                                // In portrait: screen X = device X, screen Y = device Y
+                                // In landscape: screen X = -device Y, screen Y = device X (rotated 90 degrees)
+                                when (orientation) {
+                                    Configuration.ORIENTATION_LANDSCAPE -> {
+                                        val temp = newX
+                                        newX = -newY
+                                        newY = temp
+                                    }
+                                    else -> {
+                                        // Portrait - no transformation needed
+                                    }
+                                }
+                                
+                                // Only log occasionally to reduce spam
+                                if (System.currentTimeMillis() % 1000 < 50) {
+                                    Timber.tag("EasterEgg").d("Gravity: values=[%.2f,%.2f,%.2f] -> dir=[%.2f,%.2f], orient=$orientation",
+                                        ax, ay, az, newX, newY)
+                                }
+                                
+                                gravityVector = GravityVector(x = newX, y = newY)
                             }
-                            
-                            gravityVector = GravityVector(x = newX, y = newY)
                         }
                     }
                     

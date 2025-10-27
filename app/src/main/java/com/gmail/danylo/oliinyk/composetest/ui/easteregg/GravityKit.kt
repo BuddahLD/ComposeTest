@@ -68,8 +68,9 @@ fun GravityOverlay(
     
     Timber.tag("EasterEgg").d("GravityOverlay visible=$visible, registry size=${registry.items.size}")
 
-    // Get gravity vector from device sensors
+    // Get gravity vector
     val gravityVec = rememberGravitySensor(enableDeviceGravity = useDeviceGravity)
+    val currentGravityVec = androidx.compose.runtime.rememberUpdatedState(gravityVec)
     
     // Convert probed rects to physics bodies once per session
     val initialBodies = remember(registry.items.values.toList()) {
@@ -100,9 +101,15 @@ fun GravityOverlay(
                     // Increment tick to trigger recomposition
                     tick = (tick + 1) % 1000
 
-                    // Apply gravity vector from sensors
-                    val gx = gravityVec.x * gravity
-                    val gy = gravityVec.y * gravity
+                    // Read current gravityVec inside the loop to get latest value
+                    val currentVec = currentGravityVec.value
+                    val gx = currentVec.x * gravity
+                    val gy = currentVec.y * gravity
+                    
+                    // Log occasionally for debugging
+                    if (tick % 100 == 0) {
+                        Timber.tag("EasterEgg").d("Physics: currentGravityVec=(${String.format("%.2f", currentVec.x)}, ${String.format("%.2f", currentVec.y)}), gx=$gx, gy=$gy")
+                    }
 
                     // 1) Integrate with directional gravity
                     bodies.forEach { b ->
@@ -168,6 +175,7 @@ fun GravityOverlay(
 
         // Draw proxies - use tick to trigger recomposition
         key(tick) {
+            val drawGravityVec = currentGravityVec.value
             Canvas(Modifier.fillMaxSize()) {
                 // Draw bodies
                 bodies.forEach { b ->
@@ -178,8 +186,8 @@ fun GravityOverlay(
                 val indicatorLength = 200f
                 val baseX = W / 2f
                 val baseY = H / 2f
-                val arrowEndX = baseX + gravityVec.x * indicatorLength
-                val arrowEndY = baseY + gravityVec.y * indicatorLength
+                val arrowEndX = baseX + drawGravityVec.x * indicatorLength
+                val arrowEndY = baseY + drawGravityVec.y * indicatorLength
                 
                 // Draw main arrow line
                 drawLine(
